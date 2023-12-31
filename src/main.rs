@@ -1,14 +1,14 @@
 use clap::Parser;
-use dotenv::dotenv;
-use reqwest;
-use std::env;
-use serde_json::json;
-use std::error::Error;
-use serde::Deserialize;
+use colored::Colorize;
 use dialoguer::Input;
 use dialoguer::Select;
-use colored::Colorize;
+use dotenv::dotenv;
 use indicatif::{ProgressBar, ProgressStyle};
+use reqwest;
+use serde::Deserialize;
+use serde_json::json;
+use std::env;
+use std::error::Error;
 use std::time::Duration;
 
 #[derive(Parser)]
@@ -48,30 +48,51 @@ async fn main() -> Result<(), Box<dyn Error>> {
 
         let prompt_text = "Enter your message?".yellow().to_string();
         let message: String = Input::new()
-                .with_prompt(&prompt_text)
-                .interact_text()
-                .unwrap();
+            .with_prompt(&prompt_text)
+            .interact_text()
+            .unwrap();
 
-        let tone = vec!["emotional", "energetic", "professional", "funny", "stadard", "friendly", "empathetic", "enthusiatic",
-            "inspirational", "thoughtful", "joyful", "humble"];
+        let tone = vec![
+            "emotional",
+            "energetic",
+            "professional",
+            "funny",
+            "stadard",
+            "friendly",
+            "empathetic",
+            "enthusiatic",
+            "inspirational",
+            "thoughtful",
+            "joyful",
+            "humble",
+        ];
 
         let selection_tone_prompt_text = "What tone do you choose?".blue().to_string();
         let selection_tone = Select::new()
-                .with_prompt(&selection_tone_prompt_text)
-                .items(&tone)
-                .interact()
-                .unwrap();
+            .with_prompt(&selection_tone_prompt_text)
+            .items(&tone)
+            .interact()
+            .unwrap();
 
-        let tweet_type = vec!["question", "viral", "helpful tip", "fun fact", "educational", "joke", "random"];
+        let tweet_type = vec![
+            "question",
+            "viral",
+            "helpful tip",
+            "fun fact",
+            "educational",
+            "joke",
+            "random",
+        ];
 
-        let selection_tweet_type_prompt_text = "What tweet type do you choose?".purple().to_string();
+        let selection_tweet_type_prompt_text =
+            "What tweet type do you choose?".purple().to_string();
         let selection_tweet_type = Select::new()
-                .with_prompt(&selection_tweet_type_prompt_text)
-                .items(&tweet_type)
-                .interact()
-                .unwrap();
+            .with_prompt(&selection_tweet_type_prompt_text)
+            .items(&tweet_type)
+            .interact()
+            .unwrap();
 
-        let openai_api_key =  env::var("OPENAI_API_KEY")?;
+        let openai_api_key = env::var("OPENAI_API_KEY")?;
 
         // Specify the URL you want to make a POST request to
         let url = "https://api.openai.com/v1/chat/completions";
@@ -82,9 +103,9 @@ async fn main() -> Result<(), Box<dyn Error>> {
         // Create a Headers object with custom headers
         let mut headers = reqwest::header::HeaderMap::new();
         headers.insert(
-                reqwest::header::CONTENT_TYPE,
-                reqwest::header::HeaderValue::from_static("application/json"),
-            );
+            reqwest::header::CONTENT_TYPE,
+            reqwest::header::HeaderValue::from_static("application/json"),
+        );
         headers.insert(
             reqwest::header::AUTHORIZATION,
             reqwest::header::HeaderValue::from_str(&format!("Bearer {}", bearer_token))?,
@@ -93,7 +114,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
         // Create a JSON body for the POST request
         let body = json!({
             "model": "gpt-3.5-turbo-0613",
-            "messages": [{"role": "user","content": format!("Create a tweet for Twitter with an {} tone and a {} tweet type based on the following text: {}",tone[selection_tone], tweet_type[selection_tweet_type], message)}],
+            "messages": [{"role": "user","content": format!("Finetune a tweet for Twitter with an {} tone and a {} tweet type based on the following text: {}",tone[selection_tone], tweet_type[selection_tweet_type], message)}],
         });
 
         // Start the tick
@@ -115,7 +136,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
                     "▹▹▹▹▸",
                     "▪▪▪▪▪",
                 ]),
-            );
+        );
 
         // Rust openai library - https://github.com/64bit/async-openai
         // Make the POST request
@@ -127,7 +148,8 @@ async fn main() -> Result<(), Box<dyn Error>> {
             // Get the response body as a string
             let body = response.text().await?;
 
-            let chat_completion: ChatCompletion = serde_json::from_str(body.as_str()).expect("Failed to deserialize JSON");
+            let chat_completion: ChatCompletion =
+                serde_json::from_str(body.as_str()).expect("Failed to deserialize JSON");
 
             let ai_message = &chat_completion.choices[0].message.content;
 
